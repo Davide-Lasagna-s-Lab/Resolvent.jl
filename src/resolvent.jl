@@ -12,10 +12,10 @@ struct Resolvent{Ny}
 
     function Resolvent(Ny::Int, Dy, Dy2)
         Z = zeros(Ny, Ny)
-        M =    [I Z Z;
-                Z I Z;
-                Z Z I;
-                Z Z Z]
+        M = [I Z Z;
+             Z I Z;
+             Z Z I;
+             Z Z Z]
         M[1, :] .= 0.0
         M[Ny:(Ny + 1), :] .= 0.0
         M[(2*Ny):(2*Ny + 1), :] .= 0.0
@@ -25,32 +25,36 @@ struct Resolvent{Ny}
 end
 Base.size(::Resolvent{Ny}) where {Ny} = Ny
 
-function (f::Resolvent{Ny})(kz, kt, dūdy, Re, Ro) where {Ny}
+(f::Resolvent)(kz, kt, dūdy, Re, Ro) = f(0, kz, kt, dūdy, Re, Ro)
+
+function (f::Resolvent{Ny})(kx, kz, kt, dūdy, Re, Ro) where {Ny}
     # define laplacian operator
-    f.Δ .= f.Dy2 .- f.id.*(kz^2)
+    f.Δ .= .-f.id.*(kx^2) .+ f.Dy2 .- f.id.*(kz^2)
 
     # fill resolvent matrix
-    f.H_inv[1:Ny, 1:Ny] .= 1im*kt.*f.id .- f.Δ./Re
-    f.H_inv[1:Ny, (Ny + 1):(2*Ny)] .= Diagonal(dūdy) .- f.id.*Ro
-    f.H_inv[(Ny + 1):(2*Ny), 1:Ny] .= f.id.*Ro
-    f.H_inv[(Ny + 1):(2*Ny), (Ny + 1):(2*Ny)] .= 1im*kt.*f.id .- f.Δ./Re
-    f.H_inv[(Ny + 1):(2*Ny), (3*Ny + 1):end] .= f.Dy
-    f.H_inv[(2*Ny + 1):(3*Ny), (2*Ny + 1):(3*Ny)] .= 1im.*kt.*f.id .- f.Δ./Re
-    f.H_inv[(2*Ny + 1):(3*Ny), (3*Ny + 1):end] .= 1im.*kz.*f.id
-    f.H_inv[(3*Ny + 1):end, (Ny + 1):(2*Ny)] .= .-f.Dy
-    f.H_inv[(3*Ny + 1):end, (2*Ny + 1):(3*Ny)] .= -1im.*kz.*f.id
+    f.H_inv[1:Ny, 1:Ny]                           .= 1im.*kt.*f.id   .- f.Δ./Re
+    f.H_inv[1:Ny, (Ny + 1):(2*Ny)]                .= Diagonal(dūdy) .- f.id.*Ro
+    f.H_inv[1:Ny, (3*Ny + 1):end]                 .= 1im.*kx.*f.id
+    f.H_inv[(Ny + 1):(2*Ny), 1:Ny]                .= f.id.*Ro
+    f.H_inv[(Ny + 1):(2*Ny), (Ny + 1):(2*Ny)]     .= 1im.*kt.*f.id   .- f.Δ./Re
+    f.H_inv[(Ny + 1):(2*Ny), (3*Ny + 1):end]      .= f.Dy
+    f.H_inv[(2*Ny + 1):(3*Ny), (2*Ny + 1):(3*Ny)] .= 1im.*kt.*f.id  .- f.Δ./Re
+    f.H_inv[(2*Ny + 1):(3*Ny), (3*Ny + 1):end]    .= 1im.*kz.*f.id
+    f.H_inv[(3*Ny + 1):end, 1:Ny]                 .= -1im.*kx.*f.id
+    f.H_inv[(3*Ny + 1):end, (Ny + 1):(2*Ny)]      .= .-f.Dy
+    f.H_inv[(3*Ny + 1):end, (2*Ny + 1):(3*Ny)]    .= -1im.*kz.*f.id
 
     # apply boundary conditions
-    f.H_inv[1, :] .= 0.0
-    f.H_inv[1, 1] = 1.0
-    f.H_inv[Ny:(Ny + 1), :] .= 0.0
-    f.H_inv[Ny, Ny] = 1.0
-    f.H_inv[Ny + 1, Ny + 1] = 1.0
+    f.H_inv[1, :]                 .= 0.0
+    f.H_inv[1, 1]                  = 1.0
+    f.H_inv[Ny:(Ny + 1), :]       .= 0.0
+    f.H_inv[Ny, Ny]                = 1.0
+    f.H_inv[Ny + 1, Ny + 1]        = 1.0
     f.H_inv[(2*Ny):(2*Ny + 1), :] .= 0.0
-    f.H_inv[2*Ny, 2*Ny] = 1.0
-    f.H_inv[2*Ny + 1, 2*Ny + 1] = 1.0
-    f.H_inv[3*Ny, :] .= 0.0
-    f.H_inv[3*Ny, 3*Ny] = 1.0
+    f.H_inv[2*Ny, 2*Ny]            = 1.0
+    f.H_inv[2*Ny + 1, 2*Ny + 1]    = 1.0
+    f.H_inv[3*Ny, :]              .= 0.0
+    f.H_inv[3*Ny, 3*Ny]            = 1.0
 
     # invert resolvent and multiply by influence matrix
     mul!(f.H, inv(f.H_inv), f.M)

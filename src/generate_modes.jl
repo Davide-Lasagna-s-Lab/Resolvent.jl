@@ -2,42 +2,38 @@
 
 export generate_modes!, generate_modes
 
-function generate_modes!(Ψ::Array{Complex{T}},
+function generate_modes!(Ψ::Array{Complex{T}, 5},
                         Re::T,
                         Ro::T,
                         Dy::AbstractMatrix{T},
                        Dy2::AbstractMatrix{T},
                         ws::Vector{T},
+                         α::T,
                          β::T,
                          ω::T;
                       base::Vector{T}=ones(T, size(Ψ, 1)÷3),
                    verbose::Bool=true) where {T}
     # unpack useful variables from inputs
-    N, M, Nz, Nt = size(Ψ)
+    N, M, Nx, Nz, Nt = size(Ψ)
 
     # initialise resolvent operator
     H = Resolvent(N÷3, Dy, Dy2)
 
     # loop over frequencies computing response modes
-    for nt in 1:(Nt >> 1) + 1, nz in 1:Nz
-        verbose && print("$nz/$Nz, $nt/$((Nt >> 1) + 1)                    \r")
-        if nt == 1
-            Ψ[:, :, nz, 1]        .= svd(H((nz - 1)*β, 0,          base, Re, Ro), ws, M).U
-        elseif nz == 1
-            Ψ[:, :, 1, nt]        .= svd(H(0,          (nt - 1)*ω, base, Re, Ro), ws, M).U
-            Ψ[:, :, 1, end-nt+2]  .= conj.(Ψ[:, :, 1, nt])
-        else
-            Ψ[:, :, nz, nt]       .= svd(H((nz - 1)*β, (nt - 1)*ω, base, Re, Ro), ws, M).U
-            Ψ[:, :, nz, end-nt+2] .= svd(H((nz - 1)*β, (1 - nt)*ω, base, Re, Ro), ws, M).U
-        end
-        flush(stdout)
+    verbose && println("0:$(Nx-1), $(-(Nz >> 1)):$(Nz >> 1), $(-(Nt >> 1)):$(Nt >> 1)")
+    for nt in -(Nt >> 1):(Nt >> 1), nz in -(Nz >> 1):(Nz >> 1), nx in 0:Nx-1
+        verbose && print("$nx, $nz, $nt                  \r"); flush(stdout)
+        _nx = nx + 1
+        _nz = nz >= 0 ? nz + 1 : Nz + nz + 1
+        _nt = nt >= 0 ? nt + 1 : Nt + nt + 1
+        Ψ[:, :, _nx, _nz, _nt] .= svd(H(nx*α, nz*β, nt*ω, base, Re, Ro), ws, M).U
     end
 
     return Ψ
 end
 
-generate_modes(S, M, Re, Ro, Dy, Dy2, ws, β, ω, ::Type{T}=Float64; base=ones(T, S[1]), verbose=true) where {T} = 
-    generate_modes!(zeros(Complex{T}, 3*S[1], M, (S[2] >> 1) + 1, S[3]), T(Re), T(Ro), T.(Dy), T.(Dy2), T.(ws), T(β), T(ω), base=T.(base), verbose=verbose)
+generate_modes(S, M, Re, Ro, Dy, Dy2, ws, α, β, ω, ::Type{T}=Float64; base=ones(T, S[1]), verbose=true) where {T} = 
+    generate_modes!(zeros(Complex{T}, 3*S[1], M, (S[2] >> 1) + 1, S[3], S[4]), T(Re), T(Ro), T.(Dy), T.(Dy2), T.(ws), T(α), T(β), T(ω), base=T.(base), verbose=verbose)
 
 function generate_modes(path)
     throw(error("Not implemented"))
