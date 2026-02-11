@@ -34,13 +34,3 @@ end
 
 generate_modes(S, M, Re, Ro, Dy, Dy2, ws, α, β, ω, ::Type{T}=Float64; base=ones(T, S[1]), verbose=true) where {T} = 
     generate_modes!(zeros(Complex{T}, 3*S[1], M, (S[2] >> 1) + 1, S[3], S[4]), T(Re), T(Ro), T.(Dy), T.(Dy2), T.(ws), T(α), T(β), T(ω), base=T.(base), verbose=verbose)
-
-function generate_modes(path)
-    throw(error("Not implemented"))
-end
-
-function load_mdoes!(Ψ, path) end # read file and assign to array
-load_modes(path, S, M, ::Type{T}=Float64) where {T} = load_modes!(zeros(Complex{T}, S[1], M, (S[2] >> 1) + 1, S[3]), path)
-function load_modes(path) end # create a mmap of the array
-
-function write_modes(path, Ψ) end

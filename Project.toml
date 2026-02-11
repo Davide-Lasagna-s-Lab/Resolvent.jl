@@ -1,7 +1,7 @@
 name = "ResolventAnalysis"
 uuid = "8e664b2d-fea9-4945-a6a3-91764c96093d"
-authors = ["Thomas Burton <tburton5572@gmail.com>"]
 version = "0.7.0"
+authors = ["Thomas Burton <tburton5572@gmail.com>"]
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
