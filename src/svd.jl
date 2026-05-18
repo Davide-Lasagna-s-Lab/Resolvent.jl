@@ -7,7 +7,8 @@ struct Arnoldi <: LinearAlgebra.Algorithm end
 struct Adaptive <: LinearAlgebra.Algorithm end
 
 
-LinearAlgebra.svd(H::Matrix{ComplexF64}, ws::Vector{Float64}, nvals::Int=size(H, 2); alg::LinearAlgebra.Algorithm=DivideAndConquer(), debug::Bool=false) = _svd(H, cholesky(ws)..., nvals, alg, debug)
+LinearAlgebra.svd(H::Matrix{ComplexF64}, ws::Vector{Float64}, nvals::Int=size(H, 2); alg::LinearAlgebra.Algorithm=DivideAndConquer(), debug::Bool=false) =
+    _svd(H, cholesky(ws)..., nvals, alg, debug)
 
 function _svd(H, L, L_inv, nvals, ::Adaptive, debug)
     try
@@ -28,6 +29,7 @@ function _svd(H, L, L_inv, nvals, ::Adaptive, debug)
     
     throw(LinearAlgebra.LAPACKException)
 end
+
 function _svd(H, L, L_inv, nvals, alg::LinearAlgebra.Algorithm, debug)
     # perform SVD
     decomp = _svd(L*H*L_inv, nvals, alg, debug)

@@ -20,7 +20,10 @@ struct Resolvent{Ny}
         M[Ny:(Ny + 1), :] .= 0.0
         M[(2*Ny):(2*Ny + 1), :] .= 0.0
         M[3*Ny, :] .= 0.0
-        new{Ny}(zeros(ComplexF64, 4*Ny, 3*Ny), zeros(ComplexF64, 4*Ny, 4*Ny), M, zeros(ComplexF64, Ny, Ny), Dy, Dy2, I(Ny))
+        return new{Ny}(zeros(ComplexF64, 4*Ny, 3*Ny), 
+                       zeros(ComplexF64, 4*Ny, 4*Ny), 
+                       M, 
+                       zeros(ComplexF64, Ny, Ny), Dy, Dy2, I(Ny))
     end
 end
 Base.size(::Resolvent{Ny}) where {Ny} = Ny
