@@ -90,10 +90,11 @@ end
     @test Ψ isa NTuple{3, Array{ComplexF64, 5}}
     @test all(size(Ψ[n]) == (N, M, 1, S[3], S[4]) for n in 1:3)
 
-    # compare u/v/w components at nz=1, nt=1 against Sean's reference SVD
-    nz = 1; nt = 1
-    _, U_sean, _, _ = o.quick_example(Re, nz*β, nt*ω, N, nout=4)
-    @test abs.(Ψ[1][:, :, 1, nz + 1, nt + 1]) ≈ abs.(U_sean[1:N,          1:M])
-    @test abs.(Ψ[2][:, :, 1, nz + 1, nt + 1]) ≈ abs.(U_sean[(N + 1):2N,   1:M])
-    @test abs.(Ψ[3][:, :, 1, nz + 1, nt + 1]) ≈ abs.(U_sean[(2N + 1):3N,  1:M])
+    # compare u/v/w components at kz=1, kt=1 against Sean's reference SVD
+    kz = 1; kt = 1
+    _, U_sean, _, _ = o.quick_example(Re, kz*β, kt*ω, N, nout=4)
+    ind_kz = kz + 1; ind_kt = kt + 1
+    @test abs.(Ψ[1][:, :, 1, ind_kz, ind_kt]) ≈ abs.(U_sean[1:N,          1:M])
+    @test abs.(Ψ[2][:, :, 1, ind_kz, ind_kt]) ≈ abs.(U_sean[(N + 1):2N,   1:M])
+    @test abs.(Ψ[3][:, :, 1, ind_kz, ind_kt]) ≈ abs.(U_sean[(2N + 1):3N,  1:M])
 end

@@ -21,15 +21,15 @@ function generate_modes!(Ψ::NTuple{3, Array{Complex{T}, 5}},
 
     # loop over frequencies computing response modes
     verbose && println("0:$(Nx-1), $(-(Nz >> 1)):$(Nz >> 1), $(-(Nt >> 1)):$(Nt >> 1)")
-    for nt in -(Nt >> 1):(Nt >> 1), nz in -(Nz >> 1):(Nz >> 1), nx in 0:Nx-1
-        verbose && print("$nx, $nz, $nt                  \r"); flush(stdout)
-        _nx = nx + 1
-        _nz = nz >= 0 ? nz + 1 : Nz + nz + 1
-        _nt = nt >= 0 ? nt + 1 : Nt + nt + 1
-        U = svd(H(nx*α, nz*β, nt*ω, base, Re, Ro), ws, M).U
-        Ψ[1][:, :, _nx, _nz, _nt] .= U[1:Ny, :]
-        Ψ[2][:, :, _nx, _nz, _nt] .= U[(Ny + 1):(2*Ny), :]
-        Ψ[3][:, :, _nx, _nz, _nt] .= U[(2*Ny + 1):(3*Ny), :]
+    for kt in -(Nt >> 1):(Nt >> 1), kz in -(Nz >> 1):(Nz >> 1), kx in 0:Nx-1
+        verbose && print("$kx, $kz, $kt                  \r"); flush(stdout)
+        ind_kx = kx + 1
+        ind_kz = kz >= 0 ? kz + 1 : Nz + kz + 1
+        ind_kt = kt >= 0 ? kt + 1 : Nt + kt + 1
+        U = svd(H(kx*α, kz*β, kt*ω, base, Re, Ro), ws, M).U
+        Ψ[1][:, :, ind_kx, ind_kz, ind_kt] .= U[1:Ny, :]
+        Ψ[2][:, :, ind_kx, ind_kz, ind_kt] .= U[(Ny + 1):(2*Ny), :]
+        Ψ[3][:, :, ind_kx, ind_kz, ind_kt] .= U[(2*Ny + 1):(3*Ny), :]
     end
 
     return Ψ
