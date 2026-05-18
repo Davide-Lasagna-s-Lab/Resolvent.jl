@@ -72,3 +72,28 @@ end
     @test SVD_me.S ≈ S_sean[1:5]
     @test abs.(SVD_me.V) ≈ abs.(V_sean[1:3*N, 1:5])
 end
+
+@testset "generate_modes components checked against reference" begin
+    N   = rand(4:20)
+    M   = 3
+    ws  = chebws(N)
+    Dy  = chebdiff(N)
+    Dy2 = chebddiff(N)
+    Re  = rand()*200
+    Ro  = 0.0
+    β   = rand(); ω = rand()
+    S   = (N, 1, 4, 4)  # Nx=1 so kx=0 throughout, matching quick_example
+
+    Ψ = generate_modes(S, M, Re, Ro, Dy, Dy2, ws, 0.0, β, ω; verbose=false)
+
+    # structure: tuple of three (Ny × M × Nx' × Nz × Nt) arrays
+    @test Ψ isa NTuple{3, Array{ComplexF64, 5}}
+    @test all(size(Ψ[n]) == (N, M, 1, S[3], S[4]) for n in 1:3)
+
+    # compare u/v/w components at nz=1, nt=1 against Sean's reference SVD
+    nz = 1; nt = 1
+    _, U_sean, _, _ = o.quick_example(Re, nz*β, nt*ω, N, nout=4)
+    @test abs.(Ψ[1][:, :, 1, nz + 1, nt + 1]) ≈ abs.(U_sean[1:N,          1:M])
+    @test abs.(Ψ[2][:, :, 1, nz + 1, nt + 1]) ≈ abs.(U_sean[(N + 1):2N,   1:M])
+    @test abs.(Ψ[3][:, :, 1, nz + 1, nt + 1]) ≈ abs.(U_sean[(2N + 1):3N,  1:M])
+end
