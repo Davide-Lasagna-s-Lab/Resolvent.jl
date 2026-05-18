@@ -82,13 +82,13 @@ end
     Re  = rand()*200
     Ro  = 0.0
     β   = rand(); ω = rand()
-    S   = (N, 1, 4, 4)  # Nx=1 so kx=0 throughout, matching quick_example
+    Nx  = 1; Nz = 4; Nt = 4  # Nx=1 so kx=0 throughout, matching quick_example
 
-    Ψ = generate_modes(S, M, Re, Ro, Dy, Dy2, ws, 0.0, β, ω; verbose=false)
+    Ψ = generate_modes(Nx, Nz, Nt, M, Re, Ro, Dy, Dy2, ws, 0.0, β, ω; verbose=false)
 
     # structure: tuple of three (Ny × M × Nx' × Nz × Nt) arrays
     @test Ψ isa NTuple{3, Array{ComplexF64, 5}}
-    @test all(size(Ψ[n]) == (N, M, 1, S[3], S[4]) for n in 1:3)
+    @test all(size(Ψ[n]) == (N, M, (Nx >> 1) + 1, Nz, Nt) for n in 1:3)
 
     # compare u/v/w components at kz=1, kt=1 against Sean's reference SVD
     kz = 1; kt = 1
