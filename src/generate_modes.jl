@@ -2,17 +2,17 @@
 
 export generate_modes!, generate_modes
 
-function generate_modes!(Ψ::NTuple{3, Array{Complex{T}, 5}},
-                        Re::T,
-                        Ro::T,
-                        Dy::AbstractMatrix{T},
-                       Dy2::AbstractMatrix{T},
-                        ws::Vector{T},
-                         α::T,
-                         β::T,
-                         ω::T;
-                      base::Vector{T}=ones(T, size(Ψ[1], 1)),
-                   verbose::Bool=true) where {T}
+function generate_modes!(Ψ::NTuple{3, Array{ComplexF64, 5}},
+                        Re::Real,
+                        Ro::Real,
+                        Dy::AbstractMatrix{<:Real},
+                       Dy2::AbstractMatrix{<:Real},
+                        ws::Vector{<:Real},
+                         α::Real,
+                         β::Real,
+                         ω::Real;
+                      base::Vector{<:Real}=ones(size(Ψ[1], 1)),
+                   verbose::Bool=true)
     # unpack useful variables from inputs
     Ny, M, Nx, Nz, Nt = size(Ψ[1])
 
@@ -35,6 +35,30 @@ function generate_modes!(Ψ::NTuple{3, Array{Complex{T}, 5}},
     return Ψ
 end
 
-generate_modes(S, M, Re, Ro, Dy, Dy2, ws, α, β, ω, ::Type{T}=Float64; base=ones(T, S[1]), verbose=true) where {T} =
-    generate_modes!(ntuple(_ -> zeros(Complex{T}, S[1], M, (S[2] >> 1) + 1, S[3], S[4]), 3),
-                    T(Re), T(Ro), T.(Dy), T.(Dy2), T.(ws), T(α), T(β), T(ω), base=T.(base), verbose=verbose)
+"""
+    generate_modes(Nx, Nz, Nt, M, Re, Ro, Dy, Dy2, ws, α, β, ω; base, verbose) -> NTuple{3, Array{ComplexF64, 5}}
+
+Compute the `M` leading resolvent response modes at every wavenumber on the
+grid `(kx, kz, kt) = (0:Nx-1, -(Nz÷2):Nz÷2, -(Nt÷2):Nt÷2)` scaled by `(α, β, ω)`.
+
+Returns a tuple `(Ψu, Ψv, Ψw)` where each array has shape `(Ny, M, Nx÷2+1, Nz, Nt)`:
+- axis 1: wall-normal points
+- axis 2: mode index (ordered by singular value, descending)
+- axes 3–5: rfft storage for kx, and full FFT storage for kz and kt
+
+# Arguments
+- `Nx, Nz, Nt`: number of streamwise, spanwise, and temporal wavenumbers
+- `M`: number of modes to retain
+- `Re, Ro`: Reynolds and Rotation numbers
+- `Dy, Dy2`: first and second wall-normal derivative matrices (size `Ny × Ny`)
+- `ws`: wall-normal quadrature weights (length `Ny`)
+- `α, β, ω`: wavenumber scales for x, z, t directions
+- `base`: mean streamwise velocity gradient profile (default: uniform flow `ones(Ny)`)
+- `verbose`: print progress to stdout (default: `true`)
+"""
+function generate_modes(Nx, Nz, Nt, M, Re, Ro, Dy, Dy2, ws, α, β, ω;
+                        base=ones(size(Dy, 1)), verbose=true)
+    Ny = size(Dy, 1)
+    return generate_modes!(ntuple(_ -> zeros(ComplexF64, Ny, M, (Nx >> 1) + 1, Nz, Nt), 3),
+                           Re, Ro, Dy, Dy2, ws, α, β, ω, base=base, verbose=verbose)
+end
